@@ -2,7 +2,7 @@
   "version": "3",
   "packages": {
     "specifiers": {
-      "npm:dayjs": "npm:dayjs@1.11.12",
+      "npm:dayjs@1.11.12": "npm:dayjs@1.11.12",
       "npm:rxjs@7.2.0": "npm:rxjs@7.2.0"
     },
     "npm": {
@@ -27,7 +27,7 @@
   },
   "workspace": {
     "dependencies": [
-      "npm:dayjs",
+      "npm:dayjs@1.11.12",
       "npm:rxjs@7.2.0"
     ]
   }

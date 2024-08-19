@@ -1,6 +1,6 @@
 import { concat } from "rxjs";
 import { concatMap, filter } from "rxjs/operators";
-import { Print, File } from "../mod.ts";
+import { Print, File, Convert } from "../mod.ts";
 
 
 // console.log = () => {};
@@ -15,4 +15,5 @@ File.watch("..")
   .pipe(
     filter((dir) => dir.isFile),
     concatMap((dir) => File.read(dir.path)),
+    concatMap((contentFile) => Convert.toText(contentFile)),
   ).subscribe(Print.log("a"));
