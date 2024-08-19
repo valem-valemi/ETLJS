@@ -1,5 +1,6 @@
-import {Observable} from "rxjs";
+import {Observable, Subject} from "rxjs";
 import { existsSync } from "std/fs/exists.ts";
+import { FactoryIFlowDataStorage, IFlowDataStorage, isIFlowDataStorage } from "./module.ts";
 
 export class File {
     static read(path : String) : Observable {
@@ -40,21 +41,25 @@ export class File {
         }
     }
 
-    static watch(path: String, ) {
-        async function _watch(path: String, cb) {
-            for await (const dirEntry of Deno.readDir(path)){
-                dirEntry.path = `${path}\\${dirEntry.name}`;
-                cb(dirEntry);
+    static watch(path: string | IFlowDataStorage ): Observable {
+        const flowDataStorage = !isIFlowDataStorage(path) ? FactoryIFlowDataStorage.getPath(path) : path;
+        
+        async function _watch(flowDataStorage: IFlowDataStorage, cb : (flowDataStorage: IFlowDataStorage) =>{}) {
+            const pathRead = flowDataStorage.dataStorage.uri;
+            for await (const dirEntry of Deno.readDir(pathRead)){
+                const path = `${pathRead}\\${dirEntry.name}`;
+                const flowDataStorage = FactoryIFlowDataStorage.getPath(path, dirEntry);
+                cb(flowDataStorage);
                 if (dirEntry.isDirectory) {
-                    await _watch(dirEntry.path, cb)
+                    await _watch(flowDataStorage, cb)
                 }
             }
         }
 
-        return new Observable(subscribe => {
+        return new Observable((subscribe: Subject<IFlowDataStorage>) => {
             (async () => {
-                await _watch(path, (dir) => {subscribe.next(dir)});
-            })().then(() => subscribe.complete()).catch((e) => {console.log(e); subscribe.error(e)});
+                await _watch(flowDataStorage, (flowDataStorage: IFlowDataStorage) => subscribe.next(flowDataStorage));
+            })().then(() => subscribe.complete()).catch((e) => subscribe.error(e));
             return () => {
             }
         });
