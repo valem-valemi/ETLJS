@@ -27,6 +27,7 @@
   },
   "workspace": {
     "dependencies": [
+      "npm:dayjs",
       "npm:rxjs@7.2.0"
     ]
   }
