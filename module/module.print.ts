@@ -4,9 +4,9 @@ export class Print {
   static log(...args : any[]) {
     args.unshift(dayjs().format("YYYY-MM-DD HH:mm:ss.SSS"));
     return {
-      next: (x) => console["log"].apply(this, args.concat(x)),
+      next: (x:any) => console["log"].apply(this, args.concat(x)),
       complete: () => console["log"].apply(this, args.concat("Completed")),
-      error: (x) => console["error"].apply(this, args.concat(x)),
+      error: (x:any) => console["error"].apply(this, args.concat(x)),
     };
   }
 

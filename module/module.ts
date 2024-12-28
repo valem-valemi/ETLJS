@@ -1,4 +1,4 @@
-export class FlowDataStorage {
+export class FlowDataStorage{
   _uri: IUri = null;
   _buffer: ArrayBuffer = null;
   _text: string = null;
@@ -7,26 +7,29 @@ export class FlowDataStorage {
   private constructor() {
   }
 
-  private setUri(uri:string) {
-    this._uri = parseUri(uri); 
+  private setUri(uri: string) {
+    this._uri = parseUri(uri);
   }
 
-  public getUri():IUri {
+  public getUri(): IUri {
     return this._uri;
   }
 
   private setBuffer(buffer: ArrayBuffer) {
-    this._buffer = buffer; 
+    this._buffer = buffer;
   }
 
-  private setFlowDataStorage(flowDataStorage:FlowDataStorage) {
+  private setFlowDataStorage(flowDataStorage: FlowDataStorage) {
     this._uri = flowDataStorage._uri;
     this._buffer = flowDataStorage._buffer;
     this._text = flowDataStorage._text;
     this._array = flowDataStorage._array;
   }
 
-  static build(obj: any, flowDataStorage:FlowDataStorage = new FlowDataStorage()): FlowDataStorage {
+  static build(
+    obj: any,
+    flowDataStorage: FlowDataStorage = new FlowDataStorage(),
+  ): FlowDataStorage {
     switch (obj.constructor.name) {
       case "String":
         flowDataStorage.setUri(obj);
@@ -77,7 +80,7 @@ export class FlowDataStorage {
 // }
 
 interface IUri {
-  uri:string;
+  uri: string;
   scheme: string;
   authority: string;
   path: string;
@@ -91,11 +94,28 @@ export function parseUri(uri: string): IUri {
   const maches = uri.match(regex);
 
   return {
-    uri:uri,
+    uri: uri,
     scheme: maches[1]?.replace(":", ""),
     authority: maches[3],
     path: maches[4],
-    query: maches[5],
+    query: parseUriQuery(maches[5]),
     fragment: maches[6],
   };
+}
+
+function parseUriQuery(query: string): any {
+  if (!query) {
+    return;
+  }
+  const params = String(query).match(/[^&]+=[^&]+/); // Separar los pares clave-valor
+
+  const keyValuePairs = params.map((param) => {
+    const [key, value] = param.split("=");
+    return { key, value };
+  });
+
+  keyValuePairs.forEach((pair) => {
+    console.log(`Clave: ${pair.key}, Valor: ${pair.value}`);
+  });
+  return keyValuePairs;
 }

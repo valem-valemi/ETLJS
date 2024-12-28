@@ -1,56 +1,65 @@
-import {Observable, Subject, buffer} from "rxjs";
-import { FlowDataStorage, getFlowDataStorage, parseUri } from "./module.ts";
-// export { File } from "./module.file.ts";
-export { Print } from "./module.print.ts";
-// export { Convert } from "./module.convert.ts";
+import { buffer, Observable, Subject } from "rxjs";
+const plugin: Map<string, any> = new Map();
 
-export function Read(uriStr:string | FlowDataStorage) : Observable<FlowDataStorage> {
-    const flowDataStorage = FlowDataStorage.build(uriStr);
-    return ReadProtocol[flowDataStorage.getUri().scheme](flowDataStorage);
+export class ETLJS {
+  private static plugin: Map<string, any> = new Map();
+
+  public static use(use: IUse) {
+    this.plugin.set(use.getScheme(), use);
+  }
+
+  public static read(uri: any): Observable<any> {
+    const uriObject = ETLJS.parseUri(uri);
+
+    console.log(uriObject);
+    //Default Observer
+    // deno-lint-ignore no-explicit-any
+    return new Observable((subscribe: any) => {
+      subscribe.error(new Error(`No implements uri ${uri}`));
+    });
+  }
+
+  private static parseUri(uri: string): IUri {
+    const regex =
+      /^([a-zA-Z][a-zA-Z\d+\-.]*:)?(\/\/([^\/:?#]*))?([^?#]*)(\?[^#]*)?(#.*)?/;
+    const maches = uri.match(regex);
+
+    if (!maches) {
+      return {
+        uri: "",
+        scheme: "",
+        authority: "",
+        path: "",
+        query: "",
+        fragment: "",
+      };
+    }
+    return {
+      uri: uri,
+      scheme: maches[1]?.replace(":", ""),
+      authority: maches[3],
+      path: maches[4],
+      query: maches[5],
+      fragment: maches[6],
+    };
+  }
 }
 
-class ReadProtocol {
-    static file(flowDataStorage : FlowDataStorage) : Observable<FlowDataStorage> {
-        return new Observable((subscribe: Subject<FlowDataStorage>) => {
-            let input = null;
-            (async () => {
-                input = await Deno.open(flowDataStorage.getUri().authority.concat(flowDataStorage.getUri().path), {write:false, read:true});
-                
-                const inputReader = input.readable.getReader();
-                let done = false;
-                while(!done) {
-                    const result = await inputReader.read();
-                    done = result.done;
-                    if (result.value) {
-                        subscribe.next(FlowDataStorage.build(result.value, flowDataStorage));
-                    }
-                }
-            })().then(() => subscribe.complete()).catch((e) => {console.log(e); subscribe.error(e)});
-            return () => {
-                // input?.close();
-            }
-        });
-    }
+export class FileUse implements IUse {
+  getScheme(): string {
+    return "file";
+  }
+}
 
-    static folder(flowDataStorage : FlowDataStorage) : Observable<FlowDataStorage> {
-        // async function _watch(flowDataStorage: IFlowDataStorage, cb : (flowDataStorage: IFlowDataStorage) =>{}) {
-        //     const pathRead = flowDataStorage.dataStorage.uri;
-        //     for await (const dirEntry of Deno.readDir(pathRead)){
-        //         const path = `${pathRead}\\${dirEntry.name}`;
-        //         const flowDataStorage = FactoryIFlowDataStorage.getPath(path, dirEntry);
-        //         cb(flowDataStorage);
-        //         if (dirEntry.isDirectory) {
-        //             await _watch(flowDataStorage, cb)
-        //         }
-        //     }
-        // }
+interface IUse {
+  getScheme(): string;
+}
 
-        // return new Observable((subscribe: Subject<IFlowDataStorage>) => {
-        //     (async () => {
-        //         await _watch(flowDataStorage, (flowDataStorage: IFlowDataStorage) => subscribe.next(flowDataStorage));
-        //     })().then(() => subscribe.complete()).catch((e) => subscribe.error(e));
-        //     return () => {
-        //     }
-        // });
-    }
+interface IUri {
+  uri: string;
+  scheme: string;
+  authority: string;
+  path: string;
+  query: string;
+  fragment: string;
 }

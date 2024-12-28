@@ -1,1 +1,1 @@
-export * from "./module/index.ts"
+export * from "./module/index.ts";
