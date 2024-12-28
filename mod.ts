@@ -1,1 +1,1 @@
-export * from "./module/index.ts";
+export {python} from "./lib/python.ts";
